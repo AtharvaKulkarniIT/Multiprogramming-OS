@@ -6,20 +6,22 @@ Welcome to the **Multiprogramming Operating System** project! 🎉 This project 
 
 ### Phase 1: Instruction Processing 🧩
 
-**Description**: In this phase, the system processes instructions and handles basic memory operations. It reads instructions from an input file, executes them, and writes results to an output file.
+**Description**: In this phase, the system processes instructions and handles basic memory operations. It reads instructions from an input file, executes them and writes results to an output file.
 
 **Key Features**:
 - **Instruction Register (IR)**: Stores the current instruction being executed.
 - **Memory Management (M)**: A simulated memory array used for storing and manipulating data.
 - **File Operations**: Manages reading from an input file and writing results to an output file.
 
-### Phase 2: Memory Management 🗃️
+### Phase 2: Memory and Job Management 🗃️
 
-**Description**: This phase enhances the functionality of Phase 1 by incorporating advanced memory management techniques. It includes dynamic memory allocation and deallocation strategies to efficiently manage system resources.
+**Description**: This phase builds on Phase 1 by integrating advanced memory management and job handling techniques. It includes dynamic memory allocation, error handling and job execution management to simulate a more realistic operating system environment.
 
 **Key Features**:
-- **Dynamic Allocation**: Adjusts memory allocation based on the job's requirements.
-- **Deallocation**: Frees up memory once a job is complete to optimize resource usage.
+- **Dynamic Memory Allocation**: Allocates memory dynamically based on job requirements, simulating page faults and memory allocation strategies.
+- **Error Handling**: Detects and manages various errors, such as opcode errors, operand errors, and page faults, ensuring the system handles exceptions gracefully.
+- **Job Execution Management**: Executes jobs based on instructions, including handling read and write operations, managing timers and tracking execution progress.
+- **System Status Reporting**: Logs detailed information about system status, including timers, line counts and error codes, to provide insights into job execution and system performance.
 
 ### Phase 3: Advanced Job Handling 🛠️
 
@@ -33,10 +35,8 @@ Welcome to the **Multiprogramming Operating System** project! 🎉 This project 
 
 To get started with this project:
 1. Clone the repository: `git clone https://github.com/AtharvaKulkarniIT/Multiprogramming-OS.git`
-2. Navigate to the project directory: `cd Multiprogramming-OS`
-3. Compile the code: `javac Phase1.java` (for Java files)
-4. Run the program: `java Phase1`
-
+2. Navigate to the project directory: `cd Multiprogramming-OS-main`
+3. Compile and run the program
 
 
 ## License 📜
