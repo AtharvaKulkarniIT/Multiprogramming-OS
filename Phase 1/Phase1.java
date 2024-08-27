@@ -7,26 +7,31 @@ import java.util.Scanner;
 
 public class Phase1
 {
+    // Memory array with 100 rows and 4 columns
     private static final char[][] M = new char[100][4];
-    private static int IC;
-    private static final char[] IR = new char[4];
-    private static boolean C;
-    private static final char[] R = new char[4];
-    private static int indexForM;
-    private static String buffer;
-    private static FileWriter filewriter;
-    private static boolean flag1;
-    private static boolean flag2;
-    private static Scanner scanner;
+    private static int IC;  // Instruction Counter
+    private static final char[] IR = new char[4];  // Instruction Register
+    private static boolean C;  // Condition Code
+    private static final char[] R = new char[4];  // General-purpose Register
+    private static int indexForM;  // Index for memory manipulation
+    private static String buffer;  // Buffer for reading input
+    private static FileWriter filewriter;  // FileWriter for output
+    private static boolean flag1;  // Flag for instruction processing
+    private static boolean flag2;  // Flag for memory manipulation
+    private static Scanner scanner;  // Scanner for reading input file
 
+    // Initialize memory, registers, and flags
     private static void Init()
     {
+        // Initialize memory with '-' character
         for(char[] rowInMemory : M)
             Arrays.fill(rowInMemory, '-');
 
+        // Initialize instruction register and general-purpose register
         Arrays.fill(IR, '-');
         Arrays.fill(R, '-');
 
+        // Initialize counters and flags
         IC = 0;
         C = false;
         buffer = null;
@@ -36,6 +41,7 @@ public class Phase1
         indexForM = 0;
     }
 
+    // Read data from input and store in memory
     private static void Read()
     {
         IR[3] = '0';
@@ -60,6 +66,7 @@ public class Phase1
         }
     }
 
+    // Write data from memory to output file
     private static void Write()
     {
         IR[3] = '0';
@@ -78,7 +85,7 @@ public class Phase1
         try
         {
             filewriter.write(sb.toString());
-            filewriter.flush(); // After we write using filewriter.write(), if there is any data remaining in buffer, filewriter.flush() forces to write the remaining contents of buffer to file
+            filewriter.flush();  // Ensure all data is written to file
         }
         catch(Exception e)
         {
@@ -86,6 +93,7 @@ public class Phase1
         }
     }
 
+    // Terminate file writing with additional new lines
     private static void Terminate()
     {
         try
@@ -100,32 +108,36 @@ public class Phase1
         }
     }
 
+    // Machine Operating System (MOS) service routine
     private static void MOS(int SI)
     {
         switch(SI)
         {
-            case 1:
+            case 1:  // GD (Get Data)
                 Phase1.Read();
                 break;
-            case 2:
+            case 2:  // PD (Put Data)
                 Phase1.Write();
                 break;
-            case 3:
+            case 3:  // H (Halt)
                 Phase1.Terminate();
                 break;
         }
     }
 
+    // Execute user program by processing instructions
     private static void ExecuteUserProgram()
     {
         while(true)
         {
             int SI;
+            // Fetch instruction from memory
             for (int i = 0; i < 4; i++)
                 IR[i] = M[IC][i];
             IC++;
             String opcode;
 
+            // Determine opcode
             if (IR[1] == ' ')
                 opcode = "" + IR[0];
             else
@@ -137,17 +149,18 @@ public class Phase1
                 String s = "" + IR[2] + IR[3];
                 operand = Integer.parseInt(s);
             }
+            // Decode and execute the opcode
             switch (opcode)
             {
-                case "LR":
+                case "LR":  // Load Register
                     for (int i = 0; i < 4; i++)
                         R[i] = M[operand][i];
                     break;
-                case "SR":
+                case "SR":  // Store Register
                     for (int i = 0; i < 4; i++)
                         M[operand][i] = R[i];
                     break;
-                case "CR":
+                case "CR":  // Compare Register
                     boolean flag = true;
                     for (int i = 0; i < 4; i++)
                     {
@@ -159,19 +172,19 @@ public class Phase1
                     }
                     C = flag;
                     break;
-                case "BT":
+                case "BT":  // Branch on True
                     if (C)
                         IC = Integer.parseInt((("" + IR[2]) + IR[3]));
                     break;
-                case "GD":
+                case "GD":  // Get Data
                     SI = 1;
                     Phase1.MOS(SI);
                     break;
-                case "PD":
+                case "PD":  // Put Data
                     SI = 2;
                     Phase1.MOS(SI);
                     break;
-                case "H":
+                case "H":  // Halt
                     SI = 3;
                     Phase1.MOS(SI);
                     return;
@@ -179,12 +192,14 @@ public class Phase1
         }
     }
 
+    // Start execution of the user program
     private static void StartExecution()
     {
         IC = 0;
         Phase1.ExecuteUserProgram();
     }
 
+    // Load and process input instructions
     private static void Load()
     {
         while(scanner.hasNextLine())
@@ -193,16 +208,16 @@ public class Phase1
             if (buffer.length() >= 4)
             {
                 String first4char = buffer.substring(0, 4);
-                if (first4char.equals("$AMJ"))
+                if (first4char.equals("$AMJ"))  // Start of a new job
                 {
                     flag1 = true;
                 }
-                else if (first4char.equals("$DTA"))
+                else if (first4char.equals("$DTA"))  // Start of data section
                 {
                     Phase1.StartExecution();
                     flag1 = true;
                 }
-                else if (first4char.equals("$END"))
+                else if (first4char.equals("$END"))  // End of job
                 {
                     for(int k = 0; k < M.length; k++)
                         System.out.println(k + ":" + Arrays.toString(M[k]));
@@ -234,6 +249,7 @@ public class Phase1
 
                     indexForM = i;
 
+                    // Adjust memory index for the next block of data
                     if (indexForM < 10)
                         indexForM = 10;
                     else if (indexForM < 20)
@@ -270,6 +286,7 @@ public class Phase1
                         indexForM++;
                 }
 
+                // Adjust memory index for the next block of data
                 if (indexForM < 10)
                     indexForM = 10;
                 else if (indexForM < 20)
@@ -294,44 +311,23 @@ public class Phase1
                     System.exit(1);
                 }
             }
-            flag2 = false;
-            flag1 = false;
         }
     }
 
     public static void main(String[] args)
     {
-        File file = new File("C:\\Users\\Hp\\IdeaProjects\\Multiprogramming_OS\\InputForPhase1.txt");
         try
         {
-            scanner = new Scanner(file);
+            scanner = new Scanner(new File("program.txt"));
+            filewriter = new FileWriter("output.txt");
         }
-        catch (Exception e)
+        catch(Exception e)
         {
-            System.out.println("Error occurred while opening the file: " + e.getMessage());
+            System.out.println("Error: Unable to open input/output file. " + e.getMessage());
             System.exit(1);
         }
 
-        try
-        {
-            filewriter = new FileWriter("C:\\Users\\Hp\\IdeaProjects\\Multiprogramming_OS\\OutputForPhase1.txt");
-        }
-        catch (Exception e)
-        {
-            System.out.println("Error: Unable to open the file for writing. " + e.getMessage());
-            System.exit(1);
-        }
-
-        Phase1.Init();
-        Phase1.Load();
-
-        try
-        {
-            filewriter.close();
-        }
-        catch (Exception e)
-        {
-            System.out.println("Error: Unable to close the file writer. " + e.getMessage());
-        }
+        Phase1.Init();  // Initialize the system
+        Phase1.Load();  // Load instructions and data
     }
 }
