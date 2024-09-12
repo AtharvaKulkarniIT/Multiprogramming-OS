@@ -1,333 +1,357 @@
 package org.multiprogramming_os;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
-import java.util.Arrays;
-import java.util.Scanner;
+import java.io.IOException;
 
-public class Phase1
-{
-    // Memory array with 100 rows and 4 columns
-    private static final char[][] M = new char[100][4];
-    private static int IC;  // Instruction Counter
-    private static final char[] IR = new char[4];  // Instruction Register
-    private static boolean C;  // Condition Code
-    private static final char[] R = new char[4];  // General-purpose Register
-    private static int indexForM;  // Index for memory manipulation
-    private static String buffer;  // Buffer for reading input
-    private static FileWriter filewriter;  // FileWriter for output
-    private static boolean flag1;  // Flag for instruction processing
-    private static boolean flag2;  // Flag for memory manipulation
-    private static Scanner scanner;  // Scanner for reading input file
+public class Phase1 {
 
-    // Initialize memory, registers, and flags
-    private static void Init()
-    {
-        // Initialize memory with '-' character
-        for(char[] rowInMemory : M)
-            Arrays.fill(rowInMemory, '-');
+    static char M [][] = new char [100][4];	//Memory 100*4
+    static char R [][] = new char [1][4];		//General Purpose register
+    static char IR [][] = new char [1][4];		//fetches instruction from memory one by one
+    static int IC  ; 	//loads starting address of first instruction
+    static boolean C;							//store True/ False result of operations
+    static int SI;
+    static String data = new String();
+    static int TTL,TLL;
 
-        // Initialize instruction register and general-purpose register
-        Arrays.fill(IR, '-');
-        Arrays.fill(R, '-');
+    public static void main(String[] args) {
 
-        // Initialize counters and flags
-        IC = 0;
-        C = false;
-        buffer = null;
+        String current_card;
+        String instruction;
+        int job_number = 0;
 
-        flag1 = false;
-        flag2 = false;
-        indexForM = 0;
-    }
 
-    // Read data from input and store in memory
-    private static void Read()
-    {
-        IR[3] = '0';
-        buffer = scanner.nextLine();
-        char[] array = buffer.toCharArray();
-        int indexForArray = 0;
-        boolean flag = false;
-        for(int i = Integer.parseInt("" + IR[2] + IR[3]); i < (Integer.parseInt("" + IR[2] + IR[3])) + 10; i++)
-        {
-            for(int j = 0; j < 4; j++)
-            {
-                M[i][j] = array[indexForArray];
-                indexForArray++;
-                if(indexForArray >= array.length)
-                {
-                    flag = true;
-                    break;
+
+        File file = new File("C:\\Users\\Hp\\IdeaProjects\\Multiprogramming_OS\\InputForPhase1.txt");
+        BufferedReader br = null;
+        try {
+            br = new BufferedReader(new FileReader(file));
+        } catch (FileNotFoundException e1) {
+            e1.printStackTrace();
+        }
+
+        int flag = 0;
+
+        String line;
+        try {
+            while((line = br.readLine()) != null){
+                //process the line
+                System.out.println(line);
+
+                current_card = line;
+
+
+                if(flag == 2){
+                    if(current_card.startsWith("$")){
+                        flag = 0;
+                    }
+                    else{
+                        data += current_card;
+                        data += "!";
+                    }
                 }
+
+                for(int i=0;i<line.length() && flag != 2 ;i+=4){
+                    instruction = line.substring(i, i+4);
+                    System.out.println("instrction:"+instruction);
+
+                    if(instruction.equalsIgnoreCase("$AMJ")){
+                        init();
+                        job_number = Integer.parseInt(current_card.substring(i+4, i+8));
+                        TTL = Integer.parseInt(current_card.substring(i+8, i+12));
+                        TLL = Integer.parseInt(current_card.substring(i+12,i+16));
+                        i = 16;
+                        flag = 1;
+
+                    }
+
+                    else if(instruction.equalsIgnoreCase("$DTA")){
+                        flag = 2;
+                        System.out.println("break");
+                        break;
+                    }
+
+                    else if(instruction.equalsIgnoreCase("$END")){
+                        flag = 0;
+                        if(job_number == Integer.parseInt(current_card.substring(i+4,i+8))){
+                            System.out.println("Success end of "+job_number+" job");
+                            user_program();
+                            fileWriterNewLine();
+
+                        }
+                        else
+                            System.out.println("Error in Job number");
+                        i = 8;
+                    }
+
+                    else if(flag == 1){
+//                        System.out.println("asdf");
+                        addToMemory(instruction);
+                    }
+                }
+
+
             }
-            if(flag)
-                break;
+
+            br.close();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
+
+        System.out.println("data:"+data);
+
+
+
+
+
+        int i,j;
+        System.out.println("Memory\n");
+        for(i=0;i<100;i++){
+            System.out.print(i+": ");
+            for(j=0;j<4;j++)
+                System.out.print(M[i][j]+" ");
+
+            System.out.println("\n");
+        }
+
+
+
     }
 
-    // Write data from memory to output file
-    private static void Write()
-    {
-        IR[3] = '0';
-        StringBuilder sb = new StringBuilder();
-        for(int i = Integer.parseInt("" + IR[2] + IR[3]); i < (Integer.parseInt("" + IR[2] + IR[3])) + 10; i++)
-        {
-            for(int j = 0; j < 4; j++)
-            {
-                if(M[i][j] == '-')
-                    sb.append(" ");
-                else
-                    sb.append(M[i][j]);
+    private static void fileWriterNewLine() {
+        File file = new File("C:\\Users\\Hp\\IdeaProjects\\Multiprogramming_OS\\OutputForPhase1.txt");
+        FileWriter fr = null;
+
+
+        try {
+
+            fr = new FileWriter(file,true);
+
+            //System.out.println("TLL"+TLL);
+            fr.write(System.lineSeparator());
+            fr.write(System.lineSeparator());
+            fr.write(System.lineSeparator());
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }finally{
+            //close resources
+            try {
+                fr.close();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
-        sb.append("\n");
-        try
-        {
-            filewriter.write(sb.toString());
-            filewriter.flush();  // Ensure all data is written to file
-        }
-        catch(Exception e)
-        {
-            System.out.println("Error: Unable to write to the file. " + e.getMessage());
-        }
     }
 
-    // Terminate file writing with additional new lines
-    private static void Terminate()
-    {
-        try
-        {
-            filewriter.write("\n\n\n");
-            filewriter.flush();
-        }
-        catch(Exception e)
-        {
-            System.out.println("Error: Unable to terminate the file writing. " + e.getMessage());
-            System.exit(1);
-        }
-    }
 
-    // Machine Operating System (MOS) service routine
-    private static void MOS(int SI)
-    {
-        switch(SI)
-        {
-            case 1:  // GD (Get Data)
-                Phase1.Read();
-                break;
-            case 2:  // PD (Put Data)
-                Phase1.Write();
-                break;
-            case 3:  // H (Halt)
-                Phase1.Terminate();
-                break;
-        }
-    }
+    private static void user_program() {
 
-    // Execute user program by processing instructions
-    private static void ExecuteUserProgram()
-    {
-        while(true)
-        {
-            int SI;
-            // Fetch instruction from memory
-            for (int i = 0; i < 4; i++)
-                IR[i] = M[IC][i];
+        System.out.println();
+        while(TTL>0){
+            for(int i=0;i<4;i++){
+                //IR[0][i] = M[Integer.parseInt(""+IC[0][0]+IC[0][1])][i];
+                IR[0][i] = M[IC][i];
+            }
+
             IC++;
-            String opcode;
 
-            // Determine opcode
-            if (IR[1] == ' ')
-                opcode = "" + IR[0];
-            else
-                opcode = "" + IR[0] + IR[1];
+            switch(IR[0][0]+IR[0][1]){
+                case 'G'+'D': SI = 1;
+                    MOS();
+                    break;
 
-            int operand = 0;
-            if (IR[1] != ' ')
-            {
-                String s = "" + IR[2] + IR[3];
-                operand = Integer.parseInt(s);
-            }
-            // Decode and execute the opcode
-            switch (opcode)
-            {
-                case "LR":  // Load Register
-                    for (int i = 0; i < 4; i++)
-                        R[i] = M[operand][i];
+                case 'P'+'D': SI = 2;
+                    MOS();
                     break;
-                case "SR":  // Store Register
-                    for (int i = 0; i < 4; i++)
-                        M[operand][i] = R[i];
+
+                case 'H'+'A': SI = 3;
+                    MOS();
                     break;
-                case "CR":  // Compare Register
-                    boolean flag = true;
-                    for (int i = 0; i < 4; i++)
-                    {
-                        if (M[operand][i] != R[i])
-                        {
-                            flag = false;
+
+                case 'L'+'R':
+
+                    System.out.println("IR:"+IR[0][2]+IR[0][3]);
+                    for(int i=0;i<4;i++)
+                        R[0][i] = M[Integer.parseInt(""+IR[0][2]+IR[0][3])][i];
+
+                    for(int i=0;i<4;i++)
+                        System.out.print("R:"+R[0][i]);
+
+                    break;
+
+                case 'S'+'R':
+                    for(int i=0;i<4;i++){
+                        M[Integer.parseInt(""+IR[0][2]+IR[0][3])][i] = R[0][i];
+                    }
+
+                    break;
+
+                case 'C'+'R':
+                    for(int i=0;i<4;i++){
+                        if(M[Integer.parseInt(""+IR[0][2]+IR[0][3])][i] == R[0][i])
+                            C = true;
+                        else{
+                            C = false;
                             break;
                         }
                     }
-                    C = flag;
+
                     break;
-                case "BT":  // Branch on True
-                    if (C)
-                        IC = Integer.parseInt((("" + IR[2]) + IR[3]));
+
+                case 'B'+'T':
+                    if(C == true)
+                        IC = Integer.parseInt(""+IR[0][2]+IR[0][3]);
+
                     break;
-                case "GD":  // Get Data
-                    SI = 1;
-                    Phase1.MOS(SI);
-                    break;
-                case "PD":  // Put Data
-                    SI = 2;
-                    Phase1.MOS(SI);
-                    break;
-                case "H":  // Halt
-                    SI = 3;
-                    Phase1.MOS(SI);
-                    return;
+
             }
+
+            TTL--;
+
         }
+
     }
 
-    // Start execution of the user program
-    private static void StartExecution()
-    {
+    private static void MOS() {
+        switch(SI){
+            case 1:
+                read();
+                break;
+            case 2:
+                write();
+                break;
+            case 3:
+                terminate();
+                break;
+        }
+
+    }
+
+    private static void terminate() {
+        TTL=1;
+        System.out.println("terminated");
+    }
+
+    private static void write() {
+        int row_number = Integer.parseInt(""+IR[0][2]+IR[0][3]);
+        int column_number = 0;
+        String output = new String();
+        System.out.println("start");
+        for(int i=0;true;i++,column_number++){
+            if(M[row_number][column_number] == '-')
+                break;
+            else{
+                output += M[row_number][column_number];
+                System.out.print(M[row_number][column_number]);
+            }
+            if(column_number==3){
+                row_number++;
+                column_number = -1;
+            }
+        }
+
+        writeUsingFileWriter(output);
+
+        System.out.println();
+    }
+
+    private static void read() {
+        String current_data = new String();
+        int i=0;
+        while(data.charAt(i) != '!'){
+            current_data += data.charAt(i);
+            i++;
+        }
+
+        data = data.substring(i+1, data.length());
+        System.out.println("READ DATA:"+data);
+
+        System.out.println("current_data:"+current_data);
+        int row_number = Integer.parseInt(""+IR[0][2]+IR[0][3]);
+        int column_number = 0;
+        for(i=0;i<current_data.length();i++,column_number++){
+            M[row_number][column_number] = current_data.charAt(i);
+
+            if(column_number==3){
+                row_number++;
+                column_number = -1;
+            }
+
+        }
+
+
+    }
+
+    private static void addToMemory(String instruction) {
+        int i,j = 0;
+        for(i=0;i<100;i++){
+            for(j=0;j<4;j++)
+                if(M[i][j] == '-')
+                    break;
+
+            if(j==4){
+                continue;
+            }
+
+            break;
+        }
+
+        System.out.println("i="+i+"j="+j);
+        for(int k=0;k<instruction.length();++k,j++){
+            M[i][j]= instruction.charAt(k);
+            System.out.println("M["+i+"]["+j+"] = "+M[i][j]);
+        }
+
+
+    }
+
+    private static void init() {
+        for(int i=0;i<100;i++)
+            for(int j=0;j<4;j++)
+                M[i][j] = '-';
+
+		/*for(int i=0;i<2;i++)
+			IC[i] = 0;*/
+
         IC = 0;
-        Phase1.ExecuteUserProgram();
+        SI = 3;
+
+
+
     }
 
-    // Load and process input instructions
-    private static void Load()
-    {
-        while(scanner.hasNextLine())
-        {
-            buffer = scanner.nextLine();
-            if (buffer.length() >= 4)
-            {
-                String first4char = buffer.substring(0, 4);
-                if (first4char.equals("$AMJ"))  // Start of a new job
-                {
-                    flag1 = true;
-                }
-                else if (first4char.equals("$DTA"))  // Start of data section
-                {
-                    Phase1.StartExecution();
-                    flag1 = true;
-                }
-                else if (first4char.equals("$END"))  // End of job
-                {
-                    for(int k = 0; k < M.length; k++)
-                        System.out.println(k + ":" + Arrays.toString(M[k]));
-                    System.out.println("-".repeat(83) + "Job Over" + "-".repeat(83));
-                    Phase1.Init();
-                    flag1 = true;
-                }
-                if (!flag1)
-                {
-                    char[] arrayOfBuffer = buffer.toCharArray();
-                    int indexForArrayOfBuffer = 0;
-                    int i = indexForM, j;
-                    while(true)
-                    {
-                        for (j = 0; j < 4; j++)
-                        {
-                            M[i][j] = arrayOfBuffer[indexForArrayOfBuffer];
-                            indexForArrayOfBuffer++;
-                            if (indexForArrayOfBuffer >= arrayOfBuffer.length)
-                            {
-                                flag2 = true;
-                                break;
-                            }
-                        }
-                        if (flag2)
-                            break;
-                        i++;
-                    }
+    private static void writeUsingFileWriter(String data) {
+        File file = new File("C:\\Users\\Hp\\IdeaProjects\\Multiprogramming_OS\\OutputForPhase1.txt");
+        FileWriter fr = null;
 
-                    indexForM = i;
 
-                    // Adjust memory index for the next block of data
-                    if (indexForM < 10)
-                        indexForM = 10;
-                    else if (indexForM < 20)
-                        indexForM = 20;
-                    else if (indexForM < 30)
-                        indexForM = 30;
-                    else if (indexForM < 40)
-                        indexForM = 40;
-                    else if (indexForM < 50)
-                        indexForM = 50;
-                    else if (indexForM < 60)
-                        indexForM = 60;
-                    else if (indexForM < 70)
-                        indexForM = 70;
-                    else if (indexForM < 80)
-                        indexForM = 80;
-                    else if (indexForM < 90)
-                        indexForM = 90;
-                    else
-                    {
-                        System.out.println("Error: Memory space exhausted. Exiting the program.");
-                        System.exit(1);
-                    }
-                }
+        try {
+
+            fr = new FileWriter(file,true);
+
+            //System.out.println("TLL"+TLL);
+            if(TLL>1){
+                fr.write(data+System.lineSeparator());
+                TLL--;
             }
             else
-            {
-                char[] arrayOfBuffer = buffer.toCharArray();
-                int j = indexForM;
-                for(int i = 0; i < arrayOfBuffer.length ; i++)
-                {
-                    M[j][i] = arrayOfBuffer[i];
-                    if(i == 0)
-                        indexForM++;
-                }
-
-                // Adjust memory index for the next block of data
-                if (indexForM < 10)
-                    indexForM = 10;
-                else if (indexForM < 20)
-                    indexForM = 20;
-                else if (indexForM < 30)
-                    indexForM = 30;
-                else if (indexForM < 40)
-                    indexForM = 40;
-                else if (indexForM < 50)
-                    indexForM = 50;
-                else if (indexForM < 60)
-                    indexForM = 60;
-                else if (indexForM < 70)
-                    indexForM = 70;
-                else if (indexForM < 80)
-                    indexForM = 80;
-                else if (indexForM < 90)
-                    indexForM = 90;
-                else
-                {
-                    System.out.println("Error: Memory space exhausted. Exiting the program.");
-                    System.exit(1);
-                }
+                fr.write(data);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }finally{
+            //close resources
+            try {
+                fr.close();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
 
-    public static void main(String[] args)
-    {
-        try
-        {
-            scanner = new Scanner(new File("program.txt"));
-            filewriter = new FileWriter("output.txt");
-        }
-        catch(Exception e)
-        {
-            System.out.println("Error: Unable to open input/output file. " + e.getMessage());
-            System.exit(1);
-        }
-
-        Phase1.Init();  // Initialize the system
-        Phase1.Load();  // Load instructions and data
-    }
 }
